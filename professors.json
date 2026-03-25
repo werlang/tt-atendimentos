@@ -1,32 +1,217 @@
-{
-    "alessandrapalmeira@ifsul.edu.br": "Alessandra K",
-    "andremartins@ifsul.edu.br": "André M",
-    "carlaaquino@ifsul.edu.br": "Carla",
-    "carlossarmanho@ifsul.edu.br": "Sarmanho",
-    "carolinacairuga@ifsul.edu.br": "Carolina",
-    "celsosilva@ifsul.edu.br": "Celso",
-    "charlesdomingos@ifsul.edu.br": "Charles",
-    "diegolima@ifsul.edu.br": "Diego L",
-    "eduardoleal@ifsul.edu.br": "Eduardo L",
-    "felipethomas@ifsul.edu.br": "Felipe",
-    "fellipeoliveira@ifsul.edu.br": "Fellipe",
-    "giliardbarbosa@ifsul.edu.br": "Giliard",
-    "grazielafonseca@ifsul.edu.br": "Graziela",
-    "guilhermerodrigues@ifsul.edu.br": "Guilherme R",
-    "hermesjunior@ifsul.edu.br": "Hermes",
-    "jefersonwolff@ifsul.edu.br": "Jéferson",
-    "josuemichels@ifsul.edu.br": "Josué",
-    "leonardogroff@ifsul.edu.br": "Leonardo",
-    "lisianepinheiro@ifsul.edu.br": "Lisiane",
-    "lucasmoraes@ifsul.edu.br": "Lucas Nunes",
-    "marcelolopes@ifsul.edu.br": "Marcelo",
-    "pablowerlang@ifsul.edu.br": "Pablo",
-    "rafaelpadilha@ifsul.edu.br": "Rafael Padilha",
-    "robertofilho@ifsul.edu.br": "Roberto",
-    "rodrigoferreira@ifsul.edu.br": "Rodrigo",
-    "rodrigozanette@ifsul.edu.br": "Rodrigo Zanette",
-    "samirferreira@ifsul.edu.br": "Samir",
-    "thiagobezerra@ifsul.edu.br": "Thiago B",
-    "vaniuszapalowski@ifsul.edu.br": "Vanius",
-    "viniciusguimaraes@ifsul.edu.br": "Vinicius G"
-}
+[
+    {
+        "name": "Janessa Aline Zappe",
+        "short": "Janessa",
+        "email": null
+    },
+    {
+        "name": "Jeferson Fernando de Souza Wolff",
+        "short": "Jéferson",
+        "email": "jefersonwolff@ifsul.edu.br"
+    },
+    {
+        "name": "Joao Orlando Olle Correa",
+        "short": "João C",
+        "email": null
+    },
+    {
+        "name": "Jose Luiz Kowalski",
+        "short": "José K",
+        "email": null
+    },
+    {
+        "name": "Josue Michels",
+        "short": "Josué",
+        "email": "josuemichels@ifsul.edu.br"
+    },
+    {
+        "name": "Juliano Costa Machado",
+        "short": "Juliano",
+        "email": null
+    },
+    {
+        "name": "Klaus Boesch",
+        "short": "Klaus",
+        "email": null
+    },
+    {
+        "name": "Leandro Camara Noronha",
+        "short": "Leandro",
+        "email": null
+    },
+    {
+        "name": "Leonardo Leonardo",
+        "short": "Leonardo",
+        "email": "leonardogroff@ifsul.edu.br"
+    },
+    {
+        "name": "Liliane Rodrigues Reis",
+        "short": "Liliane",
+        "email": null
+    },
+    {
+        "name": "Lisiane Araujo Pinheiro",
+        "short": "Lisiane",
+        "email": "lisianepinheiro@ifsul.edu.br"
+    },
+    {
+        "name": "Louize Pagel Leitzke",
+        "short": "Louize",
+        "email": null
+    },
+    {
+        "name": "Lucas Nunes de Moraes",
+        "short": "Lucas Nunes",
+        "email": "lucasmoraes@ifsul.edu.br"
+    },
+    {
+        "name": "Marcelo Lopes Cairuga",
+        "short": "Marcelo",
+        "email": "marcelolopes@ifsul.edu.br"
+    },
+    {
+        "name": "Marcos Bandini",
+        "short": "Marcos",
+        "email": null
+    },
+    {
+        "name": "Maria Joana Mayer de Mattos",
+        "short": "Maria",
+        "email": null
+    },
+    {
+        "name": "Mario Henrique Pereira da Rosa",
+        "short": "Mario",
+        "email": null
+    },
+    {
+        "name": "Matheus Luz Custodio",
+        "short": "Matheus Custodio",
+        "email": "matheuscustodio@ifsul.edu.br"
+    },
+    {
+        "name": "Matheus Senna de Oliveira",
+        "short": "Matheus Senna",
+        "email": null
+    },
+    {
+        "name": "Matias de Angelis Korb",
+        "short": "Matias",
+        "email": null
+    },
+    {
+        "name": "Michele Schmitt",
+        "short": "Michele",
+        "email": "micheleschmitt@ifsul.edu.br"
+    },
+    {
+        "name": "Omar Hildinger",
+        "short": "Omar",
+        "email": null
+    },
+    {
+        "name": "Pablo Santos Werlang",
+        "short": "Pablo",
+        "email": "pablowerlang@ifsul.edu.br"
+    },
+    {
+        "name": "Paulo Ricardo Boesch Junior",
+        "short": "Paulo",
+        "email": null
+    },
+    {
+        "name": "Prof. Pedagogia",
+        "short": "Pedagogia",
+        "email": null
+    },
+    {
+        "name": "Rafael Alves Padilha",
+        "short": "Rafael Padilha",
+        "email": "rafaelpadilha@ifsul.edu.br"
+    },
+    {
+        "name": "Roberto Iraja Tavares da Costa Filho",
+        "short": "Roberto",
+        "email": "robertofilho@ifsul.edu.br"
+    },
+    {
+        "name": "Rodolfo Migon Favaretto",
+        "short": "Rodolfo",
+        "email": "rodolfofavaretto@ifsul.edu.br"
+    },
+    {
+        "name": "Rodrigo Klassen Ferreira",
+        "short": "Rodrigo",
+        "email": "rodrigoferreira@ifsul.edu.br"
+    },
+    {
+        "name": "Rodrigo Zanette",
+        "short": "Rodrigo Zanette",
+        "email": "rodrigozanette@ifsul.edu.br"
+    },
+    {
+        "name": "Samir Dessbesel Ferreira",
+        "short": "Samir",
+        "email": "samirferreira@ifsul.edu.br"
+    },
+    {
+        "name": "Sandro Luiz Moraes de Barros",
+        "short": "Sandro",
+        "email": null
+    },
+    {
+        "name": "Carlos Arthur Carvalho Sarmanho Junior",
+        "short": "Sarmanho",
+        "email": "carlossarmanho@ifsul.edu.br"
+    },
+    {
+        "name": "Sergio Yoshimitsu Fujii",
+        "short": "Sérgio",
+        "email": "sergiofujii@ifsul.edu.br"
+    },
+    {
+        "name": "Mecânica Substituto",
+        "short": "Subs.Mec.",
+        "email": null
+    },
+    {
+        "name": "Praça Tatiana",
+        "short": "Tatiana",
+        "email": null
+    },
+    {
+        "name": "Thiago Castro Bezerra",
+        "short": "Thiago B",
+        "email": "thiagobezerra@ifsul.edu.br"
+    },
+    {
+        "name": "Vagner Machado Costa",
+        "short": "Vagner",
+        "email": null
+    },
+    {
+        "name": "Vanderson Filipe Costa Chaves",
+        "short": "Vanderson",
+        "email": null
+    },
+    {
+        "name": "Vanius Zapalowski",
+        "short": "Vanius",
+        "email": "vaniuszapalowski@ifsul.edu.br"
+    },
+    {
+        "name": "Vinicius Silveira Borba",
+        "short": "Vinicius B",
+        "email": "viniciusborba@ifsul.edu.br"
+    },
+    {
+        "name": "Vinicius Zortea Ferrari",
+        "short": "Vinicius F",
+        "email": null
+    },
+    {
+        "name": "Vinicius Tavares Guimaraes",
+        "short": "Vinicius G",
+        "email": "viniciusguimaraes@ifsul.edu.br"
+    }
+]

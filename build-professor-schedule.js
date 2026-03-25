@@ -3,18 +3,6 @@ const path = require('path');
 
 const DAY_ORDER = ['SEG', 'TER', 'QUA', 'QUI', 'SEX'];
 const PERIOD_CODES = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'N0', 'N1', 'N2', 'N3', 'N4', 'N5'];
-const SAMPLE_HTML_FILE = 'sample.html';
-const MATCH_TOKEN_MIN_LENGTH = 3;
-const NAME_CONNECTORS = new Set(['da', 'de', 'do', 'das', 'dos', 'del', 'e']);
-const HTML_ENTITY_MAP = {
-    '&nbsp;': ' ',
-    '&amp;': '&',
-    '&lt;': '<',
-    '&gt;': '>',
-    '&quot;': '"',
-    '&apos;': "'",
-    '&#39;': "'",
-};
 
 class CsvParser {
     static parse(text) {
@@ -83,12 +71,13 @@ class ProfessorScheduleBuilder {
         const { headers, responses } = this.readLatestResponses();
         const timeSlots = this.extractTimeSlots(headers);
         const generatedAt = new Date().toISOString();
-        const professorAliases = this.readProfessorAliases();
-        const matchedResponses = responses.filter(response => professorAliases[response.email]);
+        const professors = this.readProfessors();
+        const professorsByEmail = this.buildProfessorLookupByEmail(professors);
+        const matchedResponses = responses.filter(response => professorsByEmail.has(response.email));
         const matchedScheduleTable = this.buildScheduleTable(
             timeSlots,
             matchedResponses,
-            response => professorAliases[response.email],
+            response => professorsByEmail.get(response.email).short,
         );
 
         const clickData = this.buildClickData(matchedScheduleTable, generatedAt);
@@ -110,231 +99,63 @@ class ProfessorScheduleBuilder {
         console.log('5. Para reiniciar a sequência, rode: resetRun()');
     }
 
-    readProfessorAliases() {
+    readProfessors() {
         if (!fs.existsSync(this.mappingPath)) {
-            return {};
+            return [];
         }
 
-        return JSON.parse(fs.readFileSync(this.mappingPath, 'utf8'));
+        const parsedProfessors = JSON.parse(fs.readFileSync(this.mappingPath, 'utf8'));
+
+        if (Array.isArray(parsedProfessors)) {
+            return parsedProfessors.map((professor, index) => this.normalizeProfessorRecord(professor, `index ${index}`));
+        }
+
+        if (parsedProfessors && typeof parsedProfessors === 'object') {
+            return Object.entries(parsedProfessors)
+                .map(([email, short]) => this.normalizeProfessorRecord({
+                    name: short,
+                    short,
+                    email,
+                }, email));
+        }
+
+        throw new Error(`${path.basename(this.mappingPath)} must contain either an array of professor records or an object keyed by email.`);
     }
 
-    syncProfessorAliasesFromHtml(sampleHtmlFileName = SAMPLE_HTML_FILE) {
-        const sampleHtmlPath = path.join(this.baseDir, sampleHtmlFileName);
-        if (!fs.existsSync(sampleHtmlPath)) {
-            throw new Error(`Sample HTML file not found: ${sampleHtmlFileName}`);
+    normalizeProfessorRecord(professor, sourceLabel) {
+        const normalizedProfessor = {
+            name: String(professor && professor.name ? professor.name : professor && professor.short ? professor.short : '').trim(),
+            short: String(professor && professor.short ? professor.short : '').trim(),
+            email: professor && professor.email ? String(professor.email).trim().toLowerCase() : null,
+        };
+
+        if (!normalizedProfessor.short) {
+            throw new Error(`Professor record missing \"short\" in ${path.basename(this.mappingPath)} (${sourceLabel}).`);
         }
 
-        const currentAliases = this.readProfessorAliases();
-        const sampleRows = this.readProfessorRowsFromSampleHtml(sampleHtmlPath);
-        const syncedAliases = {};
-        const updates = [];
-        const unmatched = [];
+        if (!normalizedProfessor.name) {
+            normalizedProfessor.name = normalizedProfessor.short;
+        }
 
-        for (const [email, currentAlias] of Object.entries(currentAliases)) {
-            const match = this.findProfessorSampleMatch(email, currentAlias, sampleRows);
+        return normalizedProfessor;
+    }
 
-            if (!match) {
-                syncedAliases[email] = currentAlias;
-                unmatched.push({ email, currentAlias });
+    buildProfessorLookupByEmail(professors) {
+        const professorsByEmail = new Map();
+
+        for (const professor of professors) {
+            if (!professor.email) {
                 continue;
             }
 
-            syncedAliases[email] = match.row.abbreviation;
-
-            if (match.row.abbreviation !== currentAlias) {
-                updates.push({
-                    email,
-                    from: currentAlias,
-                    to: match.row.abbreviation,
-                });
-            }
-        }
-
-        fs.writeFileSync(this.mappingPath, `${JSON.stringify(syncedAliases, null, 4)}\n`, 'utf8');
-
-        const unchangedCount = Object.keys(currentAliases).length - updates.length - unmatched.length;
-        console.log(`Professores sincronizados em ${path.basename(this.mappingPath)} usando ${path.basename(sampleHtmlPath)}.`);
-        console.log(`Atualizados: ${updates.length}`);
-        console.log(`Sem alteração: ${unchangedCount}`);
-        console.log(`Sem correspondência segura: ${unmatched.length}`);
-
-        if (updates.length > 0) {
-            console.log('');
-            console.log('Atualizações aplicadas:');
-            for (const update of updates) {
-                console.log(`- ${update.email}: ${update.from} -> ${update.to}`);
-            }
-        }
-
-        if (unmatched.length > 0) {
-            console.log('');
-            console.log('Mantidos sem alteração por falta de correspondência segura:');
-            for (const entry of unmatched) {
-                console.log(`- ${entry.email}: ${entry.currentAlias}`);
-            }
-        }
-
-        return { syncedAliases, updates, unmatched };
-    }
-
-    readProfessorRowsFromSampleHtml(sampleHtmlPath) {
-        const html = fs.readFileSync(sampleHtmlPath, 'utf8');
-        const rowPattern = /<tr\b[^>]*class="[^"]*\brec\b[^"]*"[^>]*>([\s\S]*?)<\/tr>/gi;
-        const rows = [];
-        const seenRows = new Set();
-
-        let rowMatch = rowPattern.exec(html);
-        while (rowMatch) {
-            const cellMatches = Array.from(rowMatch[1].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi));
-            if (cellMatches.length >= 4) {
-                const abbreviation = this.extractHtmlText(cellMatches[1][1]);
-                const lastName = this.extractHtmlText(cellMatches[2][1]);
-                const firstName = this.extractHtmlText(cellMatches[3][1]);
-
-                if (abbreviation && lastName && firstName) {
-                    const signature = `${abbreviation}|${lastName}|${firstName}`;
-                    if (!seenRows.has(signature)) {
-                        seenRows.add(signature);
-                        rows.push({
-                            abbreviation,
-                            lastName,
-                            firstName,
-                            normalizedAbbreviation: this.normalizeText(abbreviation),
-                            compactAbbreviation: this.normalizeCompactText(abbreviation),
-                            compactFirstName: this.normalizeCompactText(firstName),
-                            compactLastName: this.normalizeCompactText(lastName),
-                            tokens: this.buildMatchTokens(abbreviation, lastName, firstName),
-                        });
-                    }
-                }
+            if (professorsByEmail.has(professor.email)) {
+                throw new Error(`Duplicate professor email in ${path.basename(this.mappingPath)}: ${professor.email}`);
             }
 
-            rowMatch = rowPattern.exec(html);
+            professorsByEmail.set(professor.email, professor);
         }
 
-        if (rows.length === 0) {
-            throw new Error(`No professor rows found in ${path.basename(sampleHtmlPath)}.`);
-        }
-
-        return rows;
-    }
-
-    findProfessorSampleMatch(email, currentAlias, sampleRows) {
-        const localPart = String(email || '').split('@')[0] || '';
-        const emailCompact = this.normalizeCompactText(localPart);
-        const aliasCompact = this.normalizeCompactText(currentAlias);
-
-        const rankedMatches = sampleRows
-            .map(row => this.scoreProfessorSampleRow(row, emailCompact, aliasCompact))
-            .filter(match => match.score > 0)
-            .sort((matchA, matchB) => {
-                if (matchB.score !== matchA.score) {
-                    return matchB.score - matchA.score;
-                }
-
-                if (matchB.distinctTokenCount !== matchA.distinctTokenCount) {
-                    return matchB.distinctTokenCount - matchA.distinctTokenCount;
-                }
-
-                return matchA.row.abbreviation.localeCompare(matchB.row.abbreviation, 'pt-BR');
-            });
-
-        if (rankedMatches.length === 0) {
-            return null;
-        }
-
-        const [bestMatch, secondMatch] = rankedMatches;
-
-        if (secondMatch && secondMatch.score === bestMatch.score && secondMatch.distinctTokenCount === bestMatch.distinctTokenCount) {
-            return null;
-        }
-
-        if (bestMatch.distinctTokenCount < 2) {
-            const canUseUniqueSingleTokenMatch = !secondMatch
-                && bestMatch.distinctTokenCount === 1
-                && bestMatch.emailMatchCount > 0
-                && bestMatch.aliasMatchCount > 0
-                && bestMatch.score >= 17;
-
-            if (!canUseUniqueSingleTokenMatch) {
-                return null;
-            }
-        }
-
-        return bestMatch;
-    }
-
-    scoreProfessorSampleRow(row, emailCompact, aliasCompact) {
-        const emailMatches = row.tokens.filter(token => emailCompact.includes(token));
-        const aliasMatches = row.tokens.filter(token => aliasCompact.includes(token));
-        const distinctTokens = Array.from(new Set([...emailMatches, ...aliasMatches]));
-
-        let score = emailMatches.length * 10;
-        score += aliasMatches.length * 4;
-
-        if (aliasCompact && aliasCompact === row.compactAbbreviation) {
-            score += 12;
-        }
-
-        if (row.compactFirstName && emailCompact.includes(row.compactFirstName)) {
-            score += 3;
-        }
-
-        if (row.compactLastName && emailCompact.includes(row.compactLastName)) {
-            score += 3;
-        }
-
-        return {
-            row,
-            score,
-            distinctTokenCount: distinctTokens.length,
-            emailMatchCount: emailMatches.length,
-            aliasMatchCount: aliasMatches.length,
-        };
-    }
-
-    buildMatchTokens(...values) {
-        return Array.from(new Set(values
-            .flatMap(value => this.tokenizeMatchText(value))));
-    }
-
-    tokenizeMatchText(value) {
-        return this.normalizeText(value)
-            .split(' ')
-            .filter(token => token.length >= MATCH_TOKEN_MIN_LENGTH && !NAME_CONNECTORS.has(token));
-    }
-
-    normalizeText(value) {
-        return String(value || '')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, ' ')
-            .trim();
-    }
-
-    normalizeCompactText(value) {
-        return this.normalizeText(value).replace(/\s+/g, '');
-    }
-
-    extractHtmlText(value) {
-        return this.decodeHtmlEntities(String(value || ''))
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-    }
-
-    decodeHtmlEntities(value) {
-        let decoded = String(value || '');
-
-        for (const [entity, replacement] of Object.entries(HTML_ENTITY_MAP)) {
-            decoded = decoded.split(entity).join(replacement);
-        }
-
-        decoded = decoded.replace(/&#(\d+);/g, (_, codePoint) => String.fromCodePoint(Number(codePoint)));
-        decoded = decoded.replace(/&#x([\da-f]+);/gi, (_, codePoint) => String.fromCodePoint(parseInt(codePoint, 16)));
-
-        return decoded;
+        return professorsByEmail;
     }
 
     readLatestResponses() {
@@ -532,19 +353,7 @@ class ProfessorScheduleBuilder {
 function main() {
     const baseDir = __dirname;
     const builder = new ProfessorScheduleBuilder(baseDir, 'form.csv', 'professors.json');
-    const command = process.argv[2] || 'build';
-
-    if (command === 'build') {
-        builder.run();
-        return;
-    }
-
-    if (command === 'sync-professors') {
-        builder.syncProfessorAliasesFromHtml(process.argv[3] || SAMPLE_HTML_FILE);
-        return;
-    }
-
-    throw new Error(`Unknown command: ${command}`);
+    builder.run();
 }
 
 main();

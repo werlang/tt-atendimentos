@@ -8,4 +8,4 @@ docker run --rm \
 	-v "$SCRIPT_DIR":/workspace \
 	-w /workspace \
 	"$NODE_IMAGE" \
-	node build-professor-schedule.js "$@"
+	node build-professor-schedule.js

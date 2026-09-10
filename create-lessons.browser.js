@@ -66,14 +66,78 @@
         return 8588234;
     }
 
-    function getGsh() {
+    function scanWindowForGsh() {
         if (window.__gsh) return window.__gsh;
-        if (window.EduPage && window.EduPage.gsh) return window.EduPage.gsh;
+        if (window.gsh) return window.gsh;
+        if (window._gsh) return window._gsh;
 
-        const html = document.documentElement.innerHTML;
-        const match = html.match(/["']__gsh["']\s*:\s*["']([a-f0-9]+)["']/i)
-            || html.match(/gsh\s*=\s*["']([a-f0-9]+)["']/i);
-        if (match) return match[1];
+        const namespaces = [window.EduPage, window.edupage, window.ASC, window.asc, window.ttdoc, window.g_data, window._tt];
+        for (const ns of namespaces) {
+            if (ns && typeof ns === 'object') {
+                if (typeof ns.gsh === 'string' && /^[a-f0-9]+$/i.test(ns.gsh)) return ns.gsh;
+                if (typeof ns.__gsh === 'string' && /^[a-f0-9]+$/i.test(ns.__gsh)) return ns.__gsh;
+                if (typeof ns._gsh === 'string' && /^[a-f0-9]+$/i.test(ns._gsh)) return ns._gsh;
+            }
+        }
+        return null;
+    }
+
+    function scanScriptsForGsh() {
+        for (const script of document.querySelectorAll('script')) {
+            const text = script.textContent || '';
+            const match = text.match(/(?:__)?gsh["']?\s*[:=]\s*["']([a-f0-9]{6,32})["']/i);
+            if (match) return match[1];
+        }
+        return null;
+    }
+
+    function detectGsh() {
+        const stored = sessionStorage.getItem('edupage_gsh');
+        if (stored) return stored;
+
+        const fromWindow = scanWindowForGsh();
+        if (fromWindow) {
+            sessionStorage.setItem('edupage_gsh', fromWindow);
+            return fromWindow;
+        }
+
+        const fromScripts = scanScriptsForGsh();
+        if (fromScripts) {
+            sessionStorage.setItem('edupage_gsh', fromScripts);
+            return fromScripts;
+        }
+
+        return null;
+    }
+
+    function getGsh() {
+        // 1. Check UI input field first (respects user manual edit)
+        const uiInput = ui?.shadow?.querySelector('#input-gsh')?.value?.trim();
+        if (uiInput) {
+            sessionStorage.setItem('edupage_gsh', uiInput);
+            return uiInput;
+        }
+
+        // 2. Try auto-detecting
+        const detected = detectGsh();
+        if (detected) {
+            if (ui) ui.updateConfigInput('gsh', detected);
+            return detected;
+        }
+
+        // 3. Fallback: prompt user once
+        const prompted = window.prompt(
+            'Token __gsh não detectado automaticamente.\n\n' +
+            'Por favor, informe o token __gsh da sessão (ex: ee1abf16):\n' +
+            '(Dica: no DevTools > Network, veja o payload de qualquer requisição para ttdoc.js)'
+        );
+        if (prompted && prompted.trim()) {
+            const clean = prompted.trim();
+            window.__gsh = clean;
+            sessionStorage.setItem('edupage_gsh', clean);
+            if (ui) ui.updateConfigInput('gsh', clean);
+            return clean;
+        }
 
         return null;
     }
@@ -930,13 +994,22 @@
 
         initSessionValues() {
             const ttgpid = getTtgpid();
-            const gsh = getGsh();
+            const gsh = detectGsh();
             this.shadow.querySelector('#input-ttgpid').value = ttgpid;
+            const gshInput = this.shadow.querySelector('#input-gsh');
             if (gsh) {
-                this.shadow.querySelector('#input-gsh').value = gsh;
+                gshInput.value = gsh;
             } else {
-                this.shadow.querySelector('#input-gsh').placeholder = 'Não detectado (insira manualmente)';
+                gshInput.placeholder = 'Insira o token (ex: ee1abf16)';
             }
+
+            gshInput.addEventListener('input', (e) => {
+                const val = e.target.value.trim();
+                if (val) {
+                    sessionStorage.setItem('edupage_gsh', val);
+                    window.__gsh = val;
+                }
+            });
         }
 
         handleLoadedFile(file) {

@@ -53,16 +53,16 @@ If you only want to refresh `professors.json` without regenerating `click-data.j
 1. Open your Timetables project in EduPage (`https://ifsulcharq.edupage.org/timetable/online.php?ttgpid=...`).
 2. Open DevTools Console (`F12` or `Cmd+Option+I`).
 3. Paste [`create-lessons.browser.js`](file:///Users/pablowerlang/Documents/Workspaces/ifsul/tt-atendimentos/create-lessons.browser.js) into the console.
-4. (Optional) Run `await inspect()` to view the loaded EduPage teachers, daysdefs, and periods.
-5. (Optional) Run `await testSlot("TER", "T3")` to test creating and placing a single slot.
-6. (Optional) Run `await allocatePendingCard("TER", "T3")` to place an already created card onto its time slot.
-7. Run:
-   ```js
-   await createAllSlots()
-   ```
-   Select `click-data.json` when prompted. The script will create all lessons and place their cards directly onto the schedule grid.
+4. A **floating control panel** will automatically appear over the timetable:
+   - **Upload `click-data.json`**: Drag and drop the file directly onto the panel (or click to select).
+   - **Configuration**: Displays and lets you customize `subjectId`, `classIds`, `groupIds`, and detected session parameters.
+   - **🔍 Inspecionar Metadados**: Queries EduPage and logs all teachers, periods, and day definitions.
+   - **🧪 Testar Slot**: Select a day and period to test creating and placing 1 slot.
+   - **📌 Alocar**: Places an unallocated card directly onto the selected slot.
+   - **🚀 Criar e Alocar Todas as Aulas**: Runs bulk creation across all slots.
+   - **Live Progress & Streaming Logs**: Real-time progress bar, live success/warning/error counters, auto-scrolling log console, and copy logs button.
 
-Useful console commands:
+You can also use the console commands directly if preferred:
 ```js
 await inspect()
 await testSlot("TER", "T3")
@@ -75,4 +75,4 @@ await createAllSlots()
 1. Replace `form.csv` with the latest Google Forms export.
 2. Run `./build.sh`.
 3. Paste [`create-lessons.browser.js`](file:///Users/pablowerlang/Documents/Workspaces/ifsul/tt-atendimentos/create-lessons.browser.js) in the EduPage console.
-4. Run `await createAllSlots()` to populate the timetable grid automatically.
+4. Drop `click-data.json` into the floating UI and click **Criar e Alocar Todas as Aulas**.

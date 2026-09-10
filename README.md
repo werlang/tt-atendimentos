@@ -1,36 +1,26 @@
 # tt-atendimentos
 
-Small helper project to automate professor selection in Timetables.
+Helper project to automate professor schedule generation, lesson creation, and card placement in aSc Timetables (EduPage).
 
 ## Files
 
-- `sync-professors.browser.js`: updates `professors.json` from the live professor table in the browser.
-- `form.csv`: latest Google Forms responses.
-- `professors.json`: professor list used to map form responses to Timetables names.
-- `build.sh`: generates `click-data.json`.
-- `click-timetables.browser.js`: browser helper that clicks professors automatically.
+- `build.sh`: automatically syncs professors from TrocaAula and generates `click-data.json` inside Docker.
+- `sync-professors.sh`: standalone script to update `professors.json` from TrocaAula without rebuilding.
+- `sync-professors.js`: Node script that queries TrocaAula API and correlates names/emails.
+- `build-professor-schedule.js`: Node script that builds schedule click data from `form.csv` and `professors.json`.
+- `form.csv`: latest Google Forms responses export.
+- `professors.json`: professor list used to map form responses to Timetables abbreviations.
+- `create-lessons.browser.js`: browser helper that creates lessons and assigns them to time slots directly via EduPage API.
+- `click-timetables.browser.js`: browser helper that automatically selects professors in the Timetables UI.
 
 ## Workflow
 
-### 1. Sync professors
-
-Use this when the professor list in Timetables changes.
-
-1. Open the professor table in Timetables.
-2. Paste `sync-professors.browser.js` into the browser console.
-3. Choose the current `professors.json` when prompted.
-4. Save the updated file if the browser asks, or use the downloaded replacement.
-
-Result: `professors.json` is refreshed with current names and short labels.
-
-### 2. Update `form.csv`
+### 1. Update `form.csv`
 
 1. Export the latest responses from Google Forms as CSV.
 2. Replace the local `form.csv` with that file.
 
-Result: the build will use the latest availability answers.
-
-### 3. Build click data
+### 2. Build click data
 
 Run:
 
@@ -38,45 +28,68 @@ Run:
 ./build.sh
 ```
 
-Result: `click-data.json` is regenerated.
+By default, `./build.sh` automatically connects to TrocaAula (`https://trocaaula.sistemas.charqueadas.ifsul.edu.br/`), refreshes `professors.json`, matches professor emails with `form.csv`, and generates `click-data.json`.
+
+#### Options:
+
+- Pass `--no-sync` to skip the network call and build using local `professors.json`:
+  ```sh
+  ./build.sh --no-sync
+  ```
+- Pass a custom TrocaAula URL if needed:
+  ```sh
+  ./build.sh https://trocaaula.sistemas.charqueadas.ifsul.edu.br/
+  ```
+
+### Optional: Standalone Professor Sync
+
+If you only want to refresh `professors.json` without regenerating `click-data.json`, run:
+
+```sh
+./sync-professors.sh
+```
 
 ## Use in Timetables
 
-### 4. Load the click helper
+### Option A: Fully Automated via API (Recommended)
+
+1. Open your Timetables project in EduPage (`https://ifsulcharq.edupage.org/timetable/online.php?ttgpid=...`).
+2. Open DevTools Console (`F12`).
+3. Paste [`create-lessons.browser.js`](file:///Users/pablowerlang/Documents/Workspaces/ifsul/tt-atendimentos/create-lessons.browser.js) into the console.
+4. (Optional) Run `await inspect()` to inspect the loaded EduPage teachers, daysdefs, and periods.
+5. (Optional) Run `await testSlot("TER", "T3")` to test creating and placing a single slot.
+6. (Optional) Run `await allocatePendingCard("TER", "T3")` to place an already created card onto its time slot.
+7. Run:
+   ```js
+   await createAllSlots()
+   ```
+   Select `click-data.json` when prompted. The script will create all lessons and place their cards directly onto the schedule grid.
+
+---
+
+### Option B: UI Auto-Clicker Helper (Fallback)
+
+If you already have created the lessons manually and only want to auto-select professors in the modal:
 
 1. Open Timetables in the browser.
-2. Paste `click-timetables.browser.js` into the console.
-3. Choose the generated `click-data.json`.
-
-The helper will finish with: `Ready. Run run() or run("T3", "TER").`
-
-### 5. Click professors automatically
-
-Open the `Mais professores` dialog for the current slot, then run:
-
-```js
-run()
-```
-
-Run `run()` again for the next slot.
-Run `run()` again for the next one.
+2. Paste [`click-timetables.browser.js`](file:///Users/pablowerlang/Documents/Workspaces/ifsul/tt-atendimentos/click-timetables.browser.js) into the console.
+3. Choose the generated `click-data.json` when prompted.
+4. Open the `Mais professores` dialog for the current slot, then run:
+   ```js
+   run()
+   ```
+5. Run `run()` again for each subsequent slot.
 
 Useful commands:
-
 ```js
 run()
 run("T3", "TER")
 resetRun()
 ```
 
-- `run()`: processes the next scheduled period.
-- `run("T3", "TER")`: runs a specific period/day.
-- `resetRun()`: restarts the queue from the beginning.
-
 ## Quick Summary
 
-1. Sync professors with `sync-professors.browser.js`.
-2. Replace `form.csv` with the latest Google Forms export.
-3. Run `./build.sh`.
-4. Paste `click-timetables.browser.js` in the browser.
-5. Open `Mais professores` and call `run()` for each period.
+1. Replace `form.csv` with the latest Google Forms export.
+2. Run `./build.sh`.
+3. Paste [`create-lessons.browser.js`](file:///Users/pablowerlang/Documents/Workspaces/ifsul/tt-atendimentos/create-lessons.browser.js) in the EduPage console.
+4. Run `await createAllSlots()` to populate the timetable grid automatically.

@@ -11,7 +11,6 @@ Helper project to automate professor schedule generation, lesson creation, and c
 - `form.csv`: latest Google Forms responses export.
 - `professors.json`: professor list used to map form responses to Timetables abbreviations.
 - `create-lessons.browser.js`: browser helper that creates lessons and assigns them to time slots directly via EduPage API.
-- `click-timetables.browser.js`: browser helper that automatically selects professors in the Timetables UI.
 
 ## Workflow
 
@@ -49,14 +48,12 @@ If you only want to refresh `professors.json` without regenerating `click-data.j
 ./sync-professors.sh
 ```
 
-## Use in Timetables
-
-### Option A: Fully Automated via API (Recommended)
+## Use in Timetables (EduPage)
 
 1. Open your Timetables project in EduPage (`https://ifsulcharq.edupage.org/timetable/online.php?ttgpid=...`).
-2. Open DevTools Console (`F12`).
+2. Open DevTools Console (`F12` or `Cmd+Option+I`).
 3. Paste [`create-lessons.browser.js`](file:///Users/pablowerlang/Documents/Workspaces/ifsul/tt-atendimentos/create-lessons.browser.js) into the console.
-4. (Optional) Run `await inspect()` to inspect the loaded EduPage teachers, daysdefs, and periods.
+4. (Optional) Run `await inspect()` to view the loaded EduPage teachers, daysdefs, and periods.
 5. (Optional) Run `await testSlot("TER", "T3")` to test creating and placing a single slot.
 6. (Optional) Run `await allocatePendingCard("TER", "T3")` to place an already created card onto its time slot.
 7. Run:
@@ -65,26 +62,12 @@ If you only want to refresh `professors.json` without regenerating `click-data.j
    ```
    Select `click-data.json` when prompted. The script will create all lessons and place their cards directly onto the schedule grid.
 
----
-
-### Option B: UI Auto-Clicker Helper (Fallback)
-
-If you already have created the lessons manually and only want to auto-select professors in the modal:
-
-1. Open Timetables in the browser.
-2. Paste [`click-timetables.browser.js`](file:///Users/pablowerlang/Documents/Workspaces/ifsul/tt-atendimentos/click-timetables.browser.js) into the console.
-3. Choose the generated `click-data.json` when prompted.
-4. Open the `Mais professores` dialog for the current slot, then run:
-   ```js
-   run()
-   ```
-5. Run `run()` again for each subsequent slot.
-
-Useful commands:
+Useful console commands:
 ```js
-run()
-run("T3", "TER")
-resetRun()
+await inspect()
+await testSlot("TER", "T3")
+await allocatePendingCard("TER", "T3")
+await createAllSlots()
 ```
 
 ## Quick Summary

@@ -108,12 +108,8 @@ class ProfessorScheduleBuilder {
         console.log(`Períodos com professores: ${totalSlots}`);
         console.log('');
         console.log('Próximos passos no navegador (EduPage):');
-        console.log('Opção A (Recomendada - Criação direta via API):');
-        console.log('  1. Cole create-lessons.browser.js no console do EduPage');
-        console.log('  2. Rode: await createAllSlots()');
-        console.log('Opção B (Manual - Seleção em modal aberto):');
-        console.log('  1. Cole click-timetables.browser.js no console do EduPage');
-        console.log('  2. Abra "Mais professores" e rode: run()');
+        console.log('1. Cole create-lessons.browser.js no console do EduPage');
+        console.log('2. Rode: await createAllSlots()');
     }
 
     /**

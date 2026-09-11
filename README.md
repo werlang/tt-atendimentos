@@ -11,6 +11,7 @@ Helper project to automate professor schedule generation, lesson creation, and c
 - `form.csv`: latest Google Forms responses export.
 - `professors.json`: professor list used to map form responses to Timetables abbreviations.
 - `create-lessons.browser.js`: browser helper that creates lessons and assigns them to time slots directly via EduPage API.
+- `docs/edupage-timetables-api.md`: complete technical documentation for the EduPage Timetables JSON-RPC API.
 
 ## Workflow
 
